@@ -141,7 +141,7 @@ class PermissionsHandler private constructor(
 		val activity = weakRefHost.get().getActivityOrNullFromAny()
 
 		when {
-			this.permissions.all { permissions[it] == true } -> {
+			this.permissions.isEmpty() || this.permissions.all { permissions[it] == true } -> {
 				MALogger.e("sadhiasudh onActivityPermissionsLauncherResult 1 ${weakRefListener.get()}")
 				weakRefListener.get()?.onAllPermissionsAccepted()
 			}
@@ -166,8 +166,8 @@ class PermissionsHandler private constructor(
 
 	fun actOnAllPermissionsAcceptedOrRequestPermissions() {
 		val context = weakRefContext.get() ?: return
-		MALogger.e("aaaaaaaaaa -> on all weakRefListener.get() ${weakRefListener.get()}")
-		if (permissions.all { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }) {
+		MALogger.e("aaaaaaaaaa -> on all weakRefListener.get() ${weakRefListener.get()} ${permissions.isEmpty()}")
+		if (permissions.isEmpty() || permissions.all { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }) {
 			weakRefListener.get()?.onAllPermissionsAccepted()
 		}else {
 			activityResultLauncherPermissions.launchSafely(

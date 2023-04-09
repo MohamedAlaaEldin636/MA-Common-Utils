@@ -34,6 +34,30 @@ fun FragmentActivity.createPickImagesOrVideoHandlerForSingleImageFromCamera(
 		uris.firstOrNull()?.also { onReceive(it) }
 	}
 )
+fun FragmentActivity.createPickImagesOrVideoHandlerForSingleImageFromGallery(
+	onReceive: (uri: Uri) -> Unit
+) = PickImagesOrVideoHandler(
+	this,
+	PickImagesOrVideoHandler.SupportedMediaType.IMAGE,
+	PickImagesOrVideoHandler.SourceOfData.GALLERY,
+	requestMultipleImages = false,
+	onReceive = { uris, _, _ ->
+		uris.firstOrNull()?.also { onReceive(it) }
+	}
+)
+fun FragmentActivity.createPickImagesOrVideoHandlerForSingleImageFromCameraOrGallery(
+	getAnchor: () -> View,
+	onReceive: (uri: Uri) -> Unit
+) = PickImagesOrVideoHandler(
+	this,
+	PickImagesOrVideoHandler.SupportedMediaType.IMAGE,
+	PickImagesOrVideoHandler.SourceOfData.BOTH,
+	getAnchor = { getAnchor() },
+	requestMultipleImages = false,
+	onReceive = { uris, _, _ ->
+		uris.firstOrNull()?.also { onReceive(it) }
+	}
+)
 
 fun Fragment.createPickImagesOrVideoHandlerForSingleImageFromCamera(
 	onReceive: (uri: Uri) -> Unit
@@ -167,7 +191,7 @@ class PickImagesOrVideoHandler(
 		if (it.resultCode == Activity.RESULT_OK) {
 			val uri = it.data?.data ?: return@registerForActivityResultFromAny
 
-			val context = (handler.weakRefHost.get() as? Fragment)?.context ?: return@registerForActivityResultFromAny
+			val context = handler.weakRefHost.get()?.getActivityOrNullFromAny() ?: return@registerForActivityResultFromAny
 
 			if (!uri.checkLengthOfVideo(context, maxVideoLengthInSeconds)) {
 				context.showError(context.getString(R.string.max_length_of_video_exceeded))
@@ -185,7 +209,7 @@ class PickImagesOrVideoHandler(
 		if (it.resultCode == Activity.RESULT_OK) {
 			val uri = it.data?.data ?: return@registerForActivityResultFromAny
 
-			val context = (handler.weakRefHost.get() as? Fragment)?.context ?: return@registerForActivityResultFromAny
+			val context = handler.weakRefHost.get()?.getActivityOrNullFromAny() ?: return@registerForActivityResultFromAny
 
 			if (!uri.checkLengthOfVideo(context, maxVideoLengthInSeconds)) {
 				context.showError(context.getString(R.string.max_length_of_video_exceeded))
@@ -244,7 +268,7 @@ class PickImagesOrVideoHandler(
 	}
 
 	private fun pickImageFromGallery() {
-		val fragment = handler.weakRefHost.get() as? Fragment ?: return
+		val activity = handler.weakRefHost.get()?.getActivityOrNullFromAny() ?: return
 
 		if (requestMultipleImages) {
 			val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).also {
@@ -253,24 +277,24 @@ class PickImagesOrVideoHandler(
 			}
 
 			activityResultImageGallery?.launchSafely(
-				fragment.context,
-				intent.createChooserMA(fragment.getString(R.string.pick_image))
+				activity,
+				intent.createChooserMA(activity.getString(R.string.pick_image))
 			)
 		}else {
 			val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
 
 			activityResultImageGallery?.launchSafely(
-				fragment.context,
-				intent.createChooserMA(fragment.getString(R.string.pick_image))
+				activity,
+				intent.createChooserMA(activity.getString(R.string.pick_image))
 			)
 		}
 	}
 
 	private fun showPickerForImageOrVideoFromGallery() {
-		val fragment = handler.weakRefHost.get() as? Fragment ?: return
+		val activity = handler.weakRefHost.get()?.getActivityOrNullFromAny() ?: return
 
-		val galleryImage = "${fragment.getString(R.string.gallery)} (${fragment.getString(R.string.image)})"
-		val galleryVideo = "${fragment.getString(R.string.gallery)} (${fragment.getString(R.string.video)})"
+		val galleryImage = "${activity.getString(R.string.gallery)} (${activity.getString(R.string.image)})"
+		val galleryVideo = "${activity.getString(R.string.gallery)} (${activity.getString(R.string.video)})"
 
 		getAnchor(tag)?.showPopup(
 			listOf(
@@ -284,10 +308,10 @@ class PickImagesOrVideoHandler(
 		}
 	}
 	private fun showPickerForImageOrVideoFromCamera() {
-		val fragment = handler.weakRefHost.get() as? Fragment ?: return
+		val activity = handler.weakRefHost.get()?.getActivityOrNullFromAny() ?: return
 
-		val cameraImage = "${fragment.getString(R.string.camera)} (${fragment.getString(R.string.image)})"
-		val cameraVideo = "${fragment.getString(R.string.camera)} (${fragment.getString(R.string.video)})"
+		val cameraImage = "${activity.getString(R.string.camera)} (${activity.getString(R.string.image)})"
+		val cameraVideo = "${activity.getString(R.string.camera)} (${activity.getString(R.string.video)})"
 
 		getAnchor(tag)?.showPopup(
 			listOf(
@@ -301,10 +325,10 @@ class PickImagesOrVideoHandler(
 		}
 	}
 	private fun showPickerForVideoFromCameraOrGallery() {
-		val fragment = handler.weakRefHost.get() as? Fragment ?: return
+		val activity = handler.weakRefHost.get()?.getActivityOrNullFromAny() ?: return
 
-		val videoCamera = "${fragment.getString(R.string.video)} (${fragment.getString(R.string.camera)})"
-		val videoGallery = "${fragment.getString(R.string.video)} (${fragment.getString(R.string.gallery)})"
+		val videoCamera = "${activity.getString(R.string.video)} (${activity.getString(R.string.camera)})"
+		val videoGallery = "${activity.getString(R.string.video)} (${activity.getString(R.string.gallery)})"
 
 		getAnchor(tag)?.showPopup(
 			listOf(
@@ -318,10 +342,10 @@ class PickImagesOrVideoHandler(
 		}
 	}
 	private fun showPickerForImageFromCameraOrGallery() {
-		val fragment = handler.weakRefHost.get() as? Fragment ?: return
+		val activity = handler.weakRefHost.get()?.getActivityOrNullFromAny() ?: return
 
-		val imageCamera = "${fragment.getString(R.string.image)} (${fragment.getString(R.string.camera)})"
-		val imageGallery = "${fragment.getString(R.string.image)} (${fragment.getString(R.string.gallery)})"
+		val imageCamera = "${activity.getString(R.string.image)} (${activity.getString(R.string.camera)})"
+		val imageGallery = "${activity.getString(R.string.image)} (${activity.getString(R.string.gallery)})"
 
 		getAnchor(tag)?.showPopup(
 			listOf(
@@ -335,13 +359,13 @@ class PickImagesOrVideoHandler(
 		}
 	}
 	private fun showPickerForImageOrVideoFromCameraOrGallery() {
-		val fragment = handler.weakRefHost.get() as? Fragment ?: return
+		val activity = handler.weakRefHost.get()?.getActivityOrNullFromAny() ?: return
 
-		val imageCamera = "${fragment.getString(R.string.image)} (${fragment.getString(R.string.camera)})"
-		val imageGallery = "${fragment.getString(R.string.image)} (${fragment.getString(R.string.gallery)})"
+		val imageCamera = "${activity.getString(R.string.image)} (${activity.getString(R.string.camera)})"
+		val imageGallery = "${activity.getString(R.string.image)} (${activity.getString(R.string.gallery)})"
 
-		val videoCamera = "${fragment.getString(R.string.video)} (${fragment.getString(R.string.camera)})"
-		val videoGallery = "${fragment.getString(R.string.video)} (${fragment.getString(R.string.gallery)})"
+		val videoCamera = "${activity.getString(R.string.video)} (${activity.getString(R.string.camera)})"
+		val videoGallery = "${activity.getString(R.string.video)} (${activity.getString(R.string.gallery)})"
 
 		getAnchor(tag)?.showPopup(
 			listOf(
@@ -409,10 +433,10 @@ class PickImagesOrVideoHandler(
 			SupportedMediaType.VIDEO -> pickVideoFromCamera()
 			SupportedMediaType.IMAGE -> pickImageFromCamera()
 			SupportedMediaType.BOTH -> {
-				val fragment = handler.weakRefHost.get() as? Fragment ?: return
+				val activity = handler.weakRefHost.get()?.getActivityOrNullFromAny() ?: return
 
-				val imageString = fragment.getString(R.string.image)
-				val videoString = fragment.getString(R.string.video)
+				val imageString = activity.getString(R.string.image)
+				val videoString = activity.getString(R.string.video)
 
 				getAnchor(tag)?.showPopup(
 					listOf(imageString, videoString),
@@ -432,10 +456,10 @@ class PickImagesOrVideoHandler(
 			SupportedMediaType.VIDEO -> pickVideoFromGallery()
 			SupportedMediaType.IMAGE -> pickImageFromGallery()
 			SupportedMediaType.BOTH -> {
-				val fragment = handler.weakRefHost.get() as? Fragment ?: return
+				val activity = handler.weakRefHost.get()?.getActivityOrNullFromAny() ?: return
 
-				val imageString = fragment.getString(R.string.image)
-				val videoString = fragment.getString(R.string.video)
+				val imageString = activity.getString(R.string.image)
+				val videoString = activity.getString(R.string.video)
 
 				getAnchor(tag)?.showPopup(
 					listOf(imageString, videoString),
