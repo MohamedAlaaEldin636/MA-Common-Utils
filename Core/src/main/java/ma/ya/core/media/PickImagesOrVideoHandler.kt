@@ -14,11 +14,26 @@ import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import ma.ya.core.R
 import ma.ya.core.extensions.*
 import ma.ya.core.helperClasses.MALogger
 import ma.ya.core.permissions.PermissionsHandler
 import java.io.File
+
+fun Activity.ssss() {}
+
+fun FragmentActivity.createPickImagesOrVideoHandlerForSingleImageFromCamera(
+	onReceive: (uri: Uri) -> Unit
+) = PickImagesOrVideoHandler(
+	this,
+	PickImagesOrVideoHandler.SupportedMediaType.IMAGE,
+	PickImagesOrVideoHandler.SourceOfData.CAMERA,
+	requestMultipleImages = false,
+	onReceive = { uris, _, _ ->
+		uris.firstOrNull()?.also { onReceive(it) }
+	}
+)
 
 fun Fragment.createPickImagesOrVideoHandlerForSingleImageFromCamera(
 	onReceive: (uri: Uri) -> Unit
@@ -85,7 +100,7 @@ fun Fragment.createPickImagesOrVideoHandlerForVideoFromGallery(
  * params to do whatever you want.
  */
 class PickImagesOrVideoHandler(
-	fragment: Fragment,
+	eitherFragmentOrFragmentActivity: Any,
 	private val supportedMediaType: SupportedMediaType,
 	private val sourceOfData: SourceOfData = SourceOfData.BOTH,
 	/** Ex. 3 minutes -> 3 * 60 */
@@ -112,64 +127,77 @@ class PickImagesOrVideoHandler(
 					add(Manifest.permission.READ_MEDIA_VIDEO)
 				}
 			}
-		}else {
-			add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+		}else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
 			add(Manifest.permission.READ_EXTERNAL_STORAGE)
 		}
 	}
 	private val cameraPermissions = listOf(Manifest.permission.CAMERA)
 
-	private val handler = PermissionsHandler(
-		fragment,
-		fragment.lifecycle,
-		fragment.requireContext(),
-		when (sourceOfData) {
-			SourceOfData.GALLERY -> galleryPermissions
-			SourceOfData.CAMERA -> cameraPermissions
-			SourceOfData.BOTH -> galleryPermissions + cameraPermissions
-		},
-		this
-	)
+	private val handler = when (eitherFragmentOrFragmentActivity) {
+		is Fragment -> PermissionsHandler(
+			eitherFragmentOrFragmentActivity,
+			eitherFragmentOrFragmentActivity.lifecycle,
+			eitherFragmentOrFragmentActivity.requireContext(),
+			when (sourceOfData) {
+				SourceOfData.GALLERY -> galleryPermissions
+				SourceOfData.CAMERA -> cameraPermissions
+				SourceOfData.BOTH -> galleryPermissions + cameraPermissions
+			},
+			this
+		)
+		is FragmentActivity -> PermissionsHandler(
+			eitherFragmentOrFragmentActivity,
+			eitherFragmentOrFragmentActivity.lifecycle,
+			eitherFragmentOrFragmentActivity,
+			when (sourceOfData) {
+				SourceOfData.GALLERY -> galleryPermissions
+				SourceOfData.CAMERA -> cameraPermissions
+				SourceOfData.BOTH -> galleryPermissions + cameraPermissions
+			},
+			this
+		)
+		else -> throw RuntimeException("You must either provider Fragment or FragmentActivity")
+	}
 
 	private var tag = Bundle.EMPTY
 
-	private val activityResultVideoCamera = if (supportedMediaType == SupportedMediaType.IMAGE) null else fragment.registerForActivityResult(
+	private val activityResultVideoCamera = if (supportedMediaType == SupportedMediaType.IMAGE) null else eitherFragmentOrFragmentActivity.registerForActivityResultFromAny(
 		ActivityResultContracts.StartActivityForResult()
 	) {
 		if (it.resultCode == Activity.RESULT_OK) {
-			val uri = it.data?.data ?: return@registerForActivityResult
+			val uri = it.data?.data ?: return@registerForActivityResultFromAny
 
-			val context = (handler.weakRefHost.get() as? Fragment)?.context ?: return@registerForActivityResult
+			val context = (handler.weakRefHost.get() as? Fragment)?.context ?: return@registerForActivityResultFromAny
 
 			if (!uri.checkLengthOfVideo(context, maxVideoLengthInSeconds)) {
 				context.showError(context.getString(R.string.max_length_of_video_exceeded))
 
-				return@registerForActivityResult
+				return@registerForActivityResultFromAny
 			}
 
 			onReceive(listOf(uri), true, false)
 		}
 	}
 
-	private val activityResultVideoGallery = if (supportedMediaType == SupportedMediaType.IMAGE) null else fragment.registerForActivityResult(
+	private val activityResultVideoGallery = if (supportedMediaType == SupportedMediaType.IMAGE) null else eitherFragmentOrFragmentActivity.registerForActivityResultFromAny(
 		ActivityResultContracts.StartActivityForResult()
 	) {
 		if (it.resultCode == Activity.RESULT_OK) {
-			val uri = it.data?.data ?: return@registerForActivityResult
+			val uri = it.data?.data ?: return@registerForActivityResultFromAny
 
-			val context = (handler.weakRefHost.get() as? Fragment)?.context ?: return@registerForActivityResult
+			val context = (handler.weakRefHost.get() as? Fragment)?.context ?: return@registerForActivityResultFromAny
 
 			if (!uri.checkLengthOfVideo(context, maxVideoLengthInSeconds)) {
 				context.showError(context.getString(R.string.max_length_of_video_exceeded))
 
-				return@registerForActivityResult
+				return@registerForActivityResultFromAny
 			}
 
 			onReceive(listOf(uri), false, false)
 		}
 	}
 
-	private val activityResultImageCameraFile = if (supportedMediaType == SupportedMediaType.VIDEO) null else fragment.registerForActivityResult(
+	private val activityResultImageCameraFile = if (supportedMediaType == SupportedMediaType.VIDEO) null else eitherFragmentOrFragmentActivity.registerForActivityResultFromAny(
 		ActivityResultContracts.TakePicture()
 	) { result ->
 		if (result != null && result) {
@@ -179,7 +207,7 @@ class PickImagesOrVideoHandler(
 		}
 	}
 
-	private val activityResultImageGallery = if (supportedMediaType == SupportedMediaType.VIDEO) null else fragment.registerForActivityResult(
+	private val activityResultImageGallery = if (supportedMediaType == SupportedMediaType.VIDEO) null else eitherFragmentOrFragmentActivity.registerForActivityResultFromAny(
 		ActivityResultContracts.StartActivityForResult()
 	) {
 		MALogger.e("on result -> it.resultCode == Activity.RESULT_OK ${it.resultCode} ${Activity.RESULT_OK}")
@@ -207,11 +235,11 @@ class PickImagesOrVideoHandler(
 	}
 
 	private fun pickImageFromCamera() {
-		val fragment = handler.weakRefHost.get() as? Fragment ?: return
+		val activity = handler.weakRefHost.get()?.getActivityOrNullFromAny() ?: return
 
 		activityResultImageCameraFile?.launchSafely(
-			fragment.context,
-			createImageUri(fragment.activity ?: return)
+			activity,
+			createImageUri(activity) ?: return
 		)
 	}
 
@@ -447,8 +475,8 @@ class PickImagesOrVideoHandler(
 		}else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
 			(permissions[Manifest.permission.READ_MEDIA_IMAGES] == true || permissions[Manifest.permission.READ_MEDIA_VIDEO] == true)) {
 			pickGallery()
-		}else if (permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE] == true
-			&& permissions[Manifest.permission.READ_EXTERNAL_STORAGE] == true) {
+		}else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P &&
+			permissions[Manifest.permission.READ_MEDIA_IMAGES] == true) {
 			pickGallery()
 		}
 	}

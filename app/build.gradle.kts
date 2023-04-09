@@ -48,12 +48,19 @@ android {
 }
 
 dependencies {
+    // Local Libraries
+    implementation(project(":Core"))
+
     // AndroidX
     implementation("androidx.core:core-ktx:1.10.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
 
+    // UI ( Material design guidelines )
     implementation("com.google.android.material:material:1.8.0")
+
+    // Image handler ( Glide )
+    implementation("com.github.bumptech.glide:glide:4.15.1")
 
     testImplementation("junit:junit:4.13.2")
 
