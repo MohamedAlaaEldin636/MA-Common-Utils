@@ -3,6 +3,24 @@
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
+    `maven-publish`
+}
+
+group = "com.github.MohamedAlaaEldin636"
+version = "1.0.0"
+
+publishing {
+    publications {
+        register<MavenPublication>("release") {
+            groupId = "com.github.MohamedAlaaEldin636"
+            artifactId = "ma-common-utils-core"
+            version = "1.0.0"
+
+            afterEvaluate {
+                from(components["release"])
+            }
+        }
+    }
 }
 
 android {
@@ -16,6 +34,18 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         consumerProguardFiles("consumer-rules.pro")
+
+        aarMetadata {
+            minCompileSdk = 33
+        }
+    }
+
+    //https://developer.android.com/build/publish-library/configure-pub-variants
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
     }
 
     buildTypes {
@@ -43,6 +73,14 @@ android {
         dataBinding = true
         //compose = true
     }
+
+    /*
+    https://developer.android.com/build/publish-library/prep-lib-release
+
+    testFixtures {
+        enable = true
+    }
+     */
 }
 
 dependencies {
