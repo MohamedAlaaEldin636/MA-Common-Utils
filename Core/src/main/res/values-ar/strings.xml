@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="no_app_can_handle_this_action">لا يوجد تطبيق يمكنه التعامل مع هذا الإجراء</string>
+    <string name="ok">موافق</string>
+    <string name="allow_permission">السماح بالاذن</string>
+    <string name="to_use_this_feature_you_must_accept_this_permission">للحصول على هذه الخاصية يجب الموافقة على الاذن</string>
+    <string name="you_didn_t_accept_permission">عفوا لم يتم قبول الإذن</string>
+    <string name="change_permission_in_settings_of_device">قم بتغيير الاذن فى اعدادات الجهاز</string>
+    <string name="not_all_permissions_are_accepted">لم يتم الموافقة على جميع الأذونات</string>
+</resources>

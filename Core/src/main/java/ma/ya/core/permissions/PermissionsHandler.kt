@@ -1,6 +1,6 @@
 package ma.ya.core.permissions
 
-/*import android.content.Context
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -13,8 +13,12 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
-import ma.ya.cometchatintegration.R
-import ma.ya.cometchatintegration.extensions.*
+import ma.ya.core.R
+import ma.ya.core.extensions.*
+import ma.ya.core.extensions.getActivityOrNullFromAny
+import ma.ya.core.extensions.registerForActivityResultFromAny
+import ma.ya.core.extensions.shouldShowRequestPermissionRationaleFromAny
+import ma.ya.core.helperClasses.MALogger
 import java.lang.ref.WeakReference
 
 fun Fragment.createPermissionHandlerForSinglePermission(
@@ -40,12 +44,12 @@ class ListenerOfPermissionsHandlerWhichActOnlyIfAllGranted(
 	private val weakRefContext = WeakReference(context)
 
 	override fun onAllPermissionsAccepted() {
-		MyLogger.e("sadhiasudh on allll+ ${weakRefContext.get()}")
+		MALogger.e("sadhiasudh on allll+ ${weakRefContext.get()}")
 		onPermissionGranted()
 	}
 
 	override fun onSubsetPermissionsAccepted(permissions: Map<String, Boolean>) {
-		MyLogger.e("sadhiasudh on subbbbbbbbb")
+		MALogger.e("sadhiasudh on subbbbbbbbb")
 		weakRefContext.get()?.apply {
 			showError(getString(R.string.not_all_permissions_are_accepted))
 		}
@@ -71,22 +75,27 @@ fun Fragment.createPermissionHandlerAndActOnlyIfAllGranted(
 	lifecycle,
 	requireContext(),
 	permissions.toList(),
-	ListenerOfPermissionsHandlerWhichActOnlyIfAllGranted(context, onPermissionGranted)
-	*//*object : PermissionsHandler.Listener {
-		override fun onAllPermissionsAccepted() {
-			MyLogger.e("sadhiasudh on allll+")
-			onPermissionGranted()
-		}
-
-		override fun onSubsetPermissionsAccepted(permissions: Map<String, Boolean>) {
-			MyLogger.e("sadhiasudh on subbbbbbbbb")
-			context?.showError(getString(R.string.not_all_permissions_are_accepted))
-		}
-	}*//*
+	ListenerOfPermissionsHandlerWhichActOnlyIfAllGranted(context, onPermissionGranted),
 )
 
-abstract class ListenerOfPermissionsHandler : PermissionsHandler.Listener
-
+/**
+ * # Info
+ *
+ * - Used to handle permissions with all possible cases
+ * 1. if not granted where we should display a dialog due to `shouldShowRequestPermissionRationale`
+ * returning `true`.
+ * 2. if user pressed don't show again we redirect to the application settings.
+ * 3. you can overrider the listener to act in case subset of permissions are accepted.
+ *
+ * - You can use extension functions to easily create an instance ex.
+ * [createPermissionHandlerForSinglePermission], [createPermissionHandlerAndActOnlyIfAllGranted].
+ *
+ * # Usage
+ *
+ * - You MUST create the instance in the `fragment` or `activity` before `onCreate` method.
+ *
+ * - To start requesting permissions call [actOnAllPermissionsAcceptedOrRequestPermissions].
+ */
 class PermissionsHandler private constructor(
 	lifecycle: Lifecycle,
 	context: Context,
@@ -112,36 +121,36 @@ class PermissionsHandler private constructor(
 		lifecycle.addObserver(this)
 	}
 
-	private val activityResultLauncherPermissions = host.registerForActivityResult(
+	private val activityResultLauncherPermissions = host.registerForActivityResultFromAny(
 		ActivityResultContracts.RequestMultiplePermissions()
 	) { permissions ->
 		onActivityPermissionsLauncherResult(permissions)
 	}
 
-	private val activityResultPermissionsSystemSettings = host.registerForActivityResult(
+	private val activityResultPermissionsSystemSettings = host.registerForActivityResultFromAny(
 		ActivityResultContracts.StartActivityForResult()
 	) {
-		checkOnPermissions(weakRefContext.get() ?: return@registerForActivityResult)
+		checkOnPermissions(weakRefContext.get() ?: return@registerForActivityResultFromAny)
 	}
 
 	private fun onActivityPermissionsLauncherResult(permissions: Map<String, Boolean>) {
-		MyLogger.e("sadhiasudh onActivityPermissionsLauncherResult ${weakRefHost.get().getActivityOrNull() != null}")
+		MALogger.e("sadhiasudh onActivityPermissionsLauncherResult ${weakRefHost.get().getActivityOrNullFromAny() != null}")
 
-		val activity = weakRefHost.get().getActivityOrNull()
+		val activity = weakRefHost.get().getActivityOrNullFromAny()
 
 		when {
 			this.permissions.all { permissions[it] == true } -> {
-				MyLogger.e("sadhiasudh onActivityPermissionsLauncherResult 1 ${weakRefListener.get()}")
+				MALogger.e("sadhiasudh onActivityPermissionsLauncherResult 1 ${weakRefListener.get()}")
 				weakRefListener.get()?.onAllPermissionsAccepted()
 			}
 			this.permissions.any { permissions[it] == true } -> {
-				MyLogger.e("sadhiasudh onActivityPermissionsLauncherResult 2")
+				MALogger.e("sadhiasudh onActivityPermissionsLauncherResult 2")
 				weakRefListener.get()?.onSubsetPermissionsAccepted(permissions)
 			}
 			activity != null -> {
-				MyLogger.e("sadhiasudh onActivityPermissionsLauncherResult 3")
+				MALogger.e("sadhiasudh onActivityPermissionsLauncherResult 3")
 				val rationaleList = this.permissions.filter {
-					weakRefHost.get().shouldShowRequestPermissionRationale(it)
+					weakRefHost.get().shouldShowRequestPermissionRationaleFromAny(it)
 				}
 
 				if (rationaleList.isNotEmpty()) {
@@ -153,17 +162,9 @@ class PermissionsHandler private constructor(
 		}
 	}
 
-	fun requestPermissions() {
-		MyLogger.e("sadhiasudh request permission in permissions handler with ${this.permissions}")
-		activityResultLauncherPermissions.launchSafely(
-			weakRefContext.get(),
-			this.permissions.toTypedArray()
-		)
-	}
-
 	fun actOnAllPermissionsAcceptedOrRequestPermissions() {
 		val context = weakRefContext.get() ?: return
-		MyLogger.e("aaaaaaaaaa -> on all weakRefListener.get() ${weakRefListener.get()}")
+		MALogger.e("aaaaaaaaaa -> on all weakRefListener.get() ${weakRefListener.get()}")
 		if (permissions.all { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }) {
 			weakRefListener.get()?.onAllPermissionsAccepted()
 		}else {
@@ -191,15 +192,15 @@ class PermissionsHandler private constructor(
 		fun onAllPermissionsAccepted()
 
 		fun onSubsetPermissionsAccepted(permissions: Map<String, Boolean>) {
-			MyLogger.e("sadhiasudh on subset accepted")
+			MALogger.e("sadhiasudh on subset accepted")
 		}
 
-		*//** @param list contains list of permissions which returns `true` to [shouldShowRequestPermissionRationale] fun *//*
+		/** @param list contains list of permissions which returns `true` to [shouldShowRequestPermissionRationaleFromAny] fun*/
 		fun onShouldShowRationale(permissionsHandler: PermissionsHandler, @Size(min = 1) list: List<String>) {
-			permissionsHandler.weakRefHost.get().getActivityOrNull()?.apply {
+			permissionsHandler.weakRefHost.get().getActivityOrNullFromAny()?.apply {
 				showAlertDialog(
-					getString(R.string.allow_location_permission),
-					getString(R.string.this_app_need_allow_location),
+					getString(R.string.allow_permission),
+					getString(R.string.to_use_this_feature_you_must_accept_this_permission),
 					onDismissListener = {
 						permissionsHandler.weakRefContext.get()?.also { context ->
 							context.showError(context.getString(R.string.you_didn_t_accept_permission))
@@ -215,10 +216,10 @@ class PermissionsHandler private constructor(
 		}
 
 		fun onDenyPermissions(permissionsHandler: PermissionsHandler) {
-			permissionsHandler.weakRefHost.get().getActivityOrNull()?.apply {
+			permissionsHandler.weakRefHost.get().getActivityOrNullFromAny()?.apply {
 				showAlertDialog(
 					getString(R.string.change_permission_in_settings_of_device),
-					getString(R.string.this_app_need_allow_location),
+					getString(R.string.to_use_this_feature_you_must_accept_this_permission),
 					onDismissListener = {
 						permissionsHandler.weakRefContext.get()?.also { context ->
 							context.showError(context.getString(R.string.you_didn_t_accept_permission))
@@ -239,4 +240,4 @@ class PermissionsHandler private constructor(
 
 	}
 
-}*/
+}

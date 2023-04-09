@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="no_app_can_handle_this_action">No App can handle this Action</string>
+    <string name="ok">OK</string>
+    <string name="allow_permission">Allow Permission</string>
+    <string name="to_use_this_feature_you_must_accept_this_permission">To use this feature you must accept this Permission</string>
+    <string name="you_didn_t_accept_permission">You didn\'t Accept Permission</string>
+    <string name="change_permission_in_settings_of_device">Change the Permission in the device Settings</string>
+    <string name="not_all_permissions_are_accepted">Not all permissions are accepted</string>
+</resources>
