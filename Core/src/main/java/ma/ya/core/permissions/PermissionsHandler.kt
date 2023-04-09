@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package ma.ya.core.permissions
 
 import android.content.Context

@@ -7,4 +7,10 @@
     <string name="you_didn_t_accept_permission">عفوا لم يتم قبول الإذن</string>
     <string name="change_permission_in_settings_of_device">قم بتغيير الاذن فى اعدادات الجهاز</string>
     <string name="not_all_permissions_are_accepted">لم يتم الموافقة على جميع الأذونات</string>
+    <string name="max_length_of_video_exceeded">تم تخطى الحد الأقصى للفيديو</string>
+    <string name="pick_image">إختر صورة</string>
+    <string name="camera">كاميرا</string>
+    <string name="gallery">معرض</string>
+    <string name="video">فيديو</string>
+    <string name="image">صورة</string>
 </resources>

@@ -7,4 +7,10 @@
     <string name="you_didn_t_accept_permission">You didn\'t Accept Permission</string>
     <string name="change_permission_in_settings_of_device">Change the Permission in the device Settings</string>
     <string name="not_all_permissions_are_accepted">Not all permissions are accepted</string>
+    <string name="max_length_of_video_exceeded">max length of video is exceeded</string>
+    <string name="pick_image">Pick Image</string>
+    <string name="image">Image</string>
+    <string name="camera">Camera</string>
+    <string name="gallery">Gallery</string>
+    <string name="video">Video</string>
 </resources>
