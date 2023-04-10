@@ -7,14 +7,14 @@ plugins {
 }
 
 group = "com.github.MohamedAlaaEldin636"
-version = "1.0.0"
+version = "1.0.1"
 
 publishing {
     publications {
         register<MavenPublication>("release") {
             groupId = "com.github.MohamedAlaaEldin636"
             artifactId = "ma-common-utils-core"
-            version = "1.0.0"
+            version = "1.0.1"
 
             afterEvaluate {
                 from(components["release"])
