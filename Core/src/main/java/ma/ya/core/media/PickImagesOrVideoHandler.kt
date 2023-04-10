@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import ma.ya.core.R
 import ma.ya.core.extensions.*
+import ma.ya.core.helperClasses.MACoreInitializer
 import ma.ya.core.helperClasses.MALogger
 import ma.ya.core.permissions.PermissionsHandler
 import java.io.File
@@ -483,7 +484,7 @@ class PickImagesOrVideoHandler(
 		imageUri = context.applicationContext.let {
 			FileProvider.getUriForFile(
 				it,
-				"ma.ya.core.fileprovider",
+				MACoreInitializer.fileProviderAndroidManifestXmlAuthority,
 				fileCameraCapture
 			)
 		}

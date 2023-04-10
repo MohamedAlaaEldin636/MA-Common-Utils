@@ -18,6 +18,11 @@ android {
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val fileProviderAndroidManifestXmlAuthority = "ma.ya.macommonutils.fileprovider"
+
+        manifestPlaceholders += "fileProviderAndroidManifestXmlAuthority" to fileProviderAndroidManifestXmlAuthority
+        buildConfigField("String", "fileProviderAndroidManifestXmlAuthority", "\"${fileProviderAndroidManifestXmlAuthority}\"")
     }
 
     buildTypes {
