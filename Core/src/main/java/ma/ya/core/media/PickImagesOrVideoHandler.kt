@@ -24,8 +24,6 @@ import ma.ya.core.media.PickImagesOrVideoHandler.SupportedMediaType
 import ma.ya.core.permissions.PermissionsHandler
 import java.io.File
 
-fun Activity.ssss() {}
-
 fun FragmentActivity.createPickImagesOrVideoHandlerForSingleImageFromCamera(
 	onReceive: (uri: Uri) -> Unit
 ) = PickImagesOrVideoHandler(
