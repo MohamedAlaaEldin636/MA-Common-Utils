@@ -19,6 +19,8 @@ import ma.ya.core.R
 import ma.ya.core.extensions.*
 import ma.ya.core.helperClasses.MACoreInitializer
 import ma.ya.core.helperClasses.MALogger
+import ma.ya.core.media.PickImagesOrVideoHandler.SourceOfData
+import ma.ya.core.media.PickImagesOrVideoHandler.SupportedMediaType
 import ma.ya.core.permissions.PermissionsHandler
 import java.io.File
 
@@ -28,8 +30,8 @@ fun FragmentActivity.createPickImagesOrVideoHandlerForSingleImageFromCamera(
 	onReceive: (uri: Uri) -> Unit
 ) = PickImagesOrVideoHandler(
 	this,
-	PickImagesOrVideoHandler.SupportedMediaType.IMAGE,
-	PickImagesOrVideoHandler.SourceOfData.CAMERA,
+	SupportedMediaType.IMAGE,
+	SourceOfData.CAMERA,
 	requestMultipleImages = false,
 	onReceive = { uris, _, _ ->
 		uris.firstOrNull()?.also { onReceive(it) }
@@ -39,8 +41,8 @@ fun FragmentActivity.createPickImagesOrVideoHandlerForSingleImageFromGallery(
 	onReceive: (uri: Uri) -> Unit
 ) = PickImagesOrVideoHandler(
 	this,
-	PickImagesOrVideoHandler.SupportedMediaType.IMAGE,
-	PickImagesOrVideoHandler.SourceOfData.GALLERY,
+	SupportedMediaType.IMAGE,
+	SourceOfData.GALLERY,
 	requestMultipleImages = false,
 	onReceive = { uris, _, _ ->
 		uris.firstOrNull()?.also { onReceive(it) }
@@ -51,60 +53,131 @@ fun FragmentActivity.createPickImagesOrVideoHandlerForSingleImageFromCameraOrGal
 	onReceive: (uri: Uri) -> Unit
 ) = PickImagesOrVideoHandler(
 	this,
-	PickImagesOrVideoHandler.SupportedMediaType.IMAGE,
-	PickImagesOrVideoHandler.SourceOfData.BOTH,
+	SupportedMediaType.IMAGE,
+	SourceOfData.BOTH,
 	getAnchor = { getAnchor() },
 	requestMultipleImages = false,
 	onReceive = { uris, _, _ ->
 		uris.firstOrNull()?.also { onReceive(it) }
 	}
 )
+fun FragmentActivity.createPickImagesOrVideoHandler(
+	supportedMediaType: SupportedMediaType,
+	sourceOfData: SourceOfData = SourceOfData.BOTH,
+	maxVideoLengthInSeconds: Int = 3 * 60,
+	requestMultipleImages: Boolean = false,
+	getAnchor: (tag: Bundle) -> View? = { null },
+	onReceive: (uris: List<Uri>, fromCamera: Boolean, isImageNotVideo: Boolean) -> Unit,
+) = PickImagesOrVideoHandler(
+	this,
+	supportedMediaType,
+	sourceOfData,
+	maxVideoLengthInSeconds,
+	requestMultipleImages,
+	getAnchor,
+	onReceive
+)
 
+fun Fragment.createPickImagesOrVideoHandlerForSingleImageFromEitherCameraOrGallery (
+	getAnchor: (tag: Bundle) -> View?,
+	onReceive: (uri: Uri, fromCamera: Boolean) -> Unit
+) = PickImagesOrVideoHandler(
+	this,
+	SupportedMediaType.IMAGE,
+	SourceOfData.BOTH,
+	requestMultipleImages = false,
+	getAnchor = getAnchor,
+	onReceive = { uris, fromCamera, _ ->
+		uris.firstOrNull()?.also { onReceive(it, fromCamera) }
+	}
+)
+fun Fragment.createPickImagesOrVideoHandlerForMultiImageFromEitherCameraOrGallery(
+	getAnchor: (tag: Bundle) -> View?,
+	onReceive: (uris: List<Uri>, fromCamera: Boolean) -> Unit
+) = PickImagesOrVideoHandler(
+	this,
+	SupportedMediaType.IMAGE,
+	SourceOfData.BOTH,
+	requestMultipleImages = true,
+	getAnchor = getAnchor,
+	onReceive = { uris, fromCamera, _ ->
+		onReceive(uris, fromCamera)
+	}
+)
 fun Fragment.createPickImagesOrVideoHandlerForSingleImageFromCamera(
 	onReceive: (uri: Uri) -> Unit
 ) = PickImagesOrVideoHandler(
 	this,
-	PickImagesOrVideoHandler.SupportedMediaType.IMAGE,
-	PickImagesOrVideoHandler.SourceOfData.CAMERA,
+	SupportedMediaType.IMAGE,
+	SourceOfData.CAMERA,
 	requestMultipleImages = false,
 	onReceive = { uris, _, _ ->
 		uris.firstOrNull()?.also { onReceive(it) }
+	}
+)
+fun Fragment.createPickImagesOrVideoHandlerForMultiImageFromGallery(
+	onReceive: (uris: List<Uri>) -> Unit
+) = PickImagesOrVideoHandler(
+	this,
+	SupportedMediaType.IMAGE,
+	SourceOfData.GALLERY,
+	requestMultipleImages = true,
+	onReceive = { uris, _, _ ->
+		onReceive(uris)
 	}
 )
 fun Fragment.createPickImagesOrVideoHandlerForSingleImageFromGallery(
 	onReceive: (uri: Uri) -> Unit
 ) = PickImagesOrVideoHandler(
 	this,
-	PickImagesOrVideoHandler.SupportedMediaType.IMAGE,
-	PickImagesOrVideoHandler.SourceOfData.GALLERY,
+	SupportedMediaType.IMAGE,
+	SourceOfData.GALLERY,
 	requestMultipleImages = false,
 	onReceive = { uris, _, _ ->
 		uris.firstOrNull()?.also { onReceive(it) }
 	}
 )
 fun Fragment.createPickImagesOrVideoHandlerForVideoFromCamera(
+	maxVideoLengthInSeconds: Int = 5 * 60,
 	onReceive: (uri: Uri) -> Unit
 ) = PickImagesOrVideoHandler(
 	this,
-	PickImagesOrVideoHandler.SupportedMediaType.VIDEO,
-	PickImagesOrVideoHandler.SourceOfData.CAMERA,
-	maxVideoLengthInSeconds = 5 * 60,
+	SupportedMediaType.VIDEO,
+	SourceOfData.CAMERA,
+	maxVideoLengthInSeconds = maxVideoLengthInSeconds,
 	requestMultipleImages = false,
 	onReceive = { uris, _, _ ->
 		uris.firstOrNull()?.also { onReceive(it) }
 	}
 )
 fun Fragment.createPickImagesOrVideoHandlerForVideoFromGallery(
+	maxVideoLengthInSeconds: Int = 5 * 60,
 	onReceive: (uri: Uri) -> Unit
 ) = PickImagesOrVideoHandler(
 	this,
-	PickImagesOrVideoHandler.SupportedMediaType.VIDEO,
-	PickImagesOrVideoHandler.SourceOfData.GALLERY,
-	maxVideoLengthInSeconds = 5 * 60,
+	SupportedMediaType.VIDEO,
+	SourceOfData.GALLERY,
+	maxVideoLengthInSeconds = maxVideoLengthInSeconds,
 	requestMultipleImages = false,
 	onReceive = { uris, _, _ ->
 		uris.firstOrNull()?.also { onReceive(it) }
 	}
+)
+fun Fragment.createPickImagesOrVideoHandler(
+	supportedMediaType: SupportedMediaType,
+	sourceOfData: SourceOfData = SourceOfData.BOTH,
+	maxVideoLengthInSeconds: Int = 3 * 60,
+	requestMultipleImages: Boolean = false,
+	getAnchor: (tag: Bundle) -> View? = { null },
+	onReceive: (uris: List<Uri>, fromCamera: Boolean, isImageNotVideo: Boolean) -> Unit,
+) = PickImagesOrVideoHandler(
+	this,
+	supportedMediaType,
+	sourceOfData,
+	maxVideoLengthInSeconds,
+	requestMultipleImages,
+	getAnchor,
+	onReceive
 )
 
 /**
@@ -184,7 +257,8 @@ class PickImagesOrVideoHandler(
 		else -> throw RuntimeException("You must either provider Fragment or FragmentActivity")
 	}
 
-	private var tag = Bundle.EMPTY
+	var tag: Bundle = Bundle.EMPTY
+		private set
 
 	private val activityResultVideoCamera = if (supportedMediaType == SupportedMediaType.IMAGE) null else eitherFragmentOrFragmentActivity.registerForActivityResultFromAny(
 		ActivityResultContracts.StartActivityForResult()
