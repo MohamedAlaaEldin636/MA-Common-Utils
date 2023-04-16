@@ -10,6 +10,9 @@
   - [Permissions handler](#permissions-handler-)
   - [Pick images or video handler](pick-images-or-video-handler-)
 - [Usage](#usage-)
+  - [How to use permissions handler](#how-to-use-permissions-handler-)
+    - [Inside an `Activity`](#inside-an-activity-)
+    - [Inside a `Fragment`](#inside-a-fragment-)
 
 ## Features [▴](#contents-)
 
@@ -19,14 +22,14 @@
 ### Permissions handler [▴](#features-)
 
 - Handles all cases with runtime permissions, as there are several cases :-
-    - User deny permission with don't show again option, 
-    then here when you request permission a dialog with description will appear and on click of 
-    it's button will open app's settings as it's the only way to change permissions in case denied 
+  - User deny permission with don't show again option,
+    then here when you request permission a dialog with description will appear and on click of
+    it's button will open app's settings as it's the only way to change permissions in case denied
     like that.
-    - User deny permissions once without don't show again so `shouldShowRequestPermissionRationale`
+  - User deny permissions once without don't show again so `shouldShowRequestPermissionRationale`
     would return `true` then a dialog will appear telling user to use this feature then these permissions
     are needed to be accepted.
-    - In case subset of permissions are accepted you can either re-request permissions to grant them all 
+  - In case subset of permissions are accepted you can either re-request permissions to grant them all
     or act according to permissions granted.
 
 ### Pick images or video handler [▴](#features-)
@@ -36,48 +39,75 @@
 ## Usage [▴](#contents-)
 
 1. [How to use permissions handler](#how-to-use-permissions-handler-)
+    - [Inside an `Activity`](#inside-an-activity-)
+    - [Inside a `Fragment`](#inside-a-fragment-)
 2. TODO
 
 ### How to use permissions handler [▴](#usage-)
 
-- Inside an `Activity`
+1. [Inside an `Activity`](#inside-an-activity-)
+2. [Inside a `Fragment`](#inside-a-fragment-)
+
+#### Inside an `Activity` [▴](#how-to-use-permissions-handler-)
 
 ```kotlin
 class MyActivity : AppCompatActivity() {
-  
-    // ---- Using ext functions ---- //
-      
-    private val launcherOfThePermission = createPermissionHandlerForSinglePermission(Manifest.permission.THE_PERMISSION) {
-        // Act when permission accepted by user.
-    }
-    
-    private val launcherOfSeveralPermissions = createPermissionHandlerAndActOnlyIfAllGranted(
-        Manifest.permission.PERMISSION_1,
-        Manifest.permission.PERMISSION_2,
-        Manifest.permission.PERMISSION_3,
-    ) {
+
+  // ---- Using ext functions ---- //
+
+  private val launcherOfThePermission = createPermissionHandlerForSinglePermission(Manifest.permission.THE_PERMISSION) {
+    // Act when permission accepted by user.
+  }
+
+  private val launcherOfSeveralPermissions = createPermissionHandlerAndActOnlyIfAllGranted(
+    Manifest.permission.PERMISSION_1,
+    Manifest.permission.PERMISSION_2,
+    Manifest.permission.PERMISSION_3,
+  ) {
+    // Act when ALL permissions accepted by user.
+  }
+
+  // ---- Using constructor ---- //
+
+  private val launcherOfSeveralPermissions2 = PermissionsHandler(
+    this,
+    lifecycle,
+    this,
+    listOf(Manifest.permission.PERMISSION_1, Manifest.permission.PERMISSION_2),
+    object : PermissionsHandler.Listener {
+      override fun onAllPermissionsAccepted() {
         // Act when ALL permissions accepted by user.
+      }
+
+      override fun onSubsetPermissionsAccepted(permissions: Map<String, Boolean>) {
+        // Act when subset of the permissions are accepted and 
+        // you Can know which are accepted by using below code
+        val isPermission1Accepted = permissions[Manifest.permission.PERMISSION_1] == true
+      }
     }
-    
-    // ---- Using constructor ---- //
-    
-    private val launcherOfSeveralPermissions2 = PermissionsHandler(
-        this,
-        lifecycle,
-        this,
-        listOf(Manifest.permission.PERMISSION_1, Manifest.permission.PERMISSION_2),
-        object : PermissionsHandler.Listener {
-            override fun onAllPermissionsAccepted() {
-                // Act when ALL permissions accepted by user.
-            }
-      
-            override fun onSubsetPermissionsAccepted(permissions: Map<String, Boolean>) {
-                // Act when subset of the permissions are accepted and 
-                // you Can know which are accepted by using below code
-                val isPermission1Accepted = permissions[Manifest.permission.PERMISSION_1] == true
-            }
-        }
-    )
+  )
+
+}
+```
+
+#### Inside a `Fragment` [▴](#how-to-use-permissions-handler-)
+
+```kotlin
+class MyFragment : Fragment() {
+
+  // MUST be used like below flow, Otherwise an exception will be thrown.
+  // flow is -> created only before super.onCreate() but inside that function not on declaration
+  // of the property.
+
+  private lateinit var launcherOfThePermission: PermissionsHandler
+
+  override fun onCreate(savedInstanceState: Bundle?) {
+    launcherOfThePermission = createPermissionHandlerForSinglePermission(Manifest.permission.THE_PERMISSION) {
+      // Act when permission accepted by user.
+    }
+
+    super.onCreate(savedInstanceState)
+  }
 
 }
 ```
