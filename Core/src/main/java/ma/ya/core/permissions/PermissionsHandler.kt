@@ -37,6 +37,61 @@ fun Fragment.createPermissionHandlerForSinglePermission(
 		}
 	}
 )
+fun Fragment.createPermissionHandlerAndActOnlyIfAllGranted(
+	vararg permissions: String,
+	listener: ListenerOfPermissionsHandlerWhichActOnlyIfAllGranted
+) = PermissionsHandler(
+	this,
+	lifecycle,
+	requireContext(),
+	permissions.toList(),
+	listener
+)
+fun Fragment.createPermissionHandlerAndActOnlyIfAllGranted(
+	vararg permissions: String,
+	onPermissionGranted: () -> Unit
+) = PermissionsHandler(
+	this,
+	lifecycle,
+	requireContext(),
+	permissions.toList(),
+	ListenerOfPermissionsHandlerWhichActOnlyIfAllGranted(context, onPermissionGranted),
+)
+
+fun FragmentActivity.createPermissionHandlerForSinglePermission(
+	permission: String,
+	onPermissionGranted: () -> Unit
+) = PermissionsHandler(
+	this,
+	lifecycle,
+	this,
+	listOf(permission),
+	object : PermissionsHandler.Listener {
+		override fun onAllPermissionsAccepted() {
+			onPermissionGranted()
+		}
+	}
+)
+fun FragmentActivity.createPermissionHandlerAndActOnlyIfAllGranted(
+	vararg permissions: String,
+	listener: ListenerOfPermissionsHandlerWhichActOnlyIfAllGranted
+) = PermissionsHandler(
+	this,
+	lifecycle,
+	this,
+	permissions.toList(),
+	listener
+)
+fun FragmentActivity.createPermissionHandlerAndActOnlyIfAllGranted(
+	vararg permissions: String,
+	onPermissionGranted: () -> Unit
+) = PermissionsHandler(
+	this,
+	lifecycle,
+	this,
+	permissions.toList(),
+	ListenerOfPermissionsHandlerWhichActOnlyIfAllGranted(this, onPermissionGranted),
+)
 
 class ListenerOfPermissionsHandlerWhichActOnlyIfAllGranted(
 	context: Context?,
@@ -57,28 +112,6 @@ class ListenerOfPermissionsHandlerWhichActOnlyIfAllGranted(
 		}
 	}
 }
-
-fun Fragment.createPermissionHandlerAndActOnlyIfAllGranted(
-	vararg permissions: String,
-	listener: ListenerOfPermissionsHandlerWhichActOnlyIfAllGranted
-) = PermissionsHandler(
-	this,
-	lifecycle,
-	requireContext(),
-	permissions.toList(),
-	listener
-)
-
-fun Fragment.createPermissionHandlerAndActOnlyIfAllGranted(
-	vararg permissions: String,
-	onPermissionGranted: () -> Unit
-) = PermissionsHandler(
-	this,
-	lifecycle,
-	requireContext(),
-	permissions.toList(),
-	ListenerOfPermissionsHandlerWhichActOnlyIfAllGranted(context, onPermissionGranted),
-)
 
 /**
  * # Info
