@@ -6,6 +6,9 @@
 
 # Contents [▴](#ma-common-utils)
 
+- [Install](#install-)
+  - [Jitpack Environment](#jitpack-environment-)
+  - [Library](#library-)
 - [Features](#features-)
   - [Permissions handler](#permissions-handler-)
   - [Pick images or video handler](pick-images-or-video-handler-)
@@ -13,6 +16,43 @@
   - [How to use permissions handler](#how-to-use-permissions-handler-)
     - [Inside an `Activity`](#inside-an-activity-)
     - [Inside a `Fragment`](#inside-a-fragment-)
+  - todo
+
+## Install [▴](#contents-)
+
+- [Jitpack Environment](#jitpack-environment-)
+- [Library](#library-)
+
+### Jitpack Environment [▴](#install-)
+
+- in your Gradle **Top-level** build file add below code
+
+``` kotlin
+// Note this is Kotlin DSL Not Groovy.
+allprojects {
+    repositories {
+        maven { url = uri("https://jitpack.io") }
+    }
+}
+```
+
+### Library [▴](#install-)
+
+- X.Y.Z denotes library version which is [![](https://jitpack.io/v/MohamedAlaaEldin636/MA-Common-Utils.svg)](https://jitpack.io/#MohamedAlaaEldin636/MA-Common-Utils)
+
+- in your Gradle **Module-level** build file add below code
+
+``` kotlin 
+plugins {
+    kotlin("android")
+    // ...
+}
+// ...
+dependencies {
+    implementation("com.github.MohamedAlaaEldin636:MA-Common-Utils:X.Y.Z")
+    // ...
+}
+```
 
 ## Features [▴](#contents-)
 
@@ -49,7 +89,8 @@
 1. [How to use permissions handler](#how-to-use-permissions-handler-)
     - [Inside an `Activity`](#inside-an-activity-)
     - [Inside a `Fragment`](#inside-a-fragment-)
-2. TODO
+2. [How to use pick images or video handler](#how-to-use-pick-images-or-video-handler-)
+    - TODO
 
 ### How to use permissions handler [▴](#usage-)
 
@@ -119,3 +160,8 @@ class MyFragment : Fragment() {
 
 }
 ```
+
+### How to use pick images or video handler [▴](#usage-)
+
+1. Setup 
+2. TODO
