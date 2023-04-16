@@ -34,7 +34,15 @@
 
 ### Pick images or video handler [▴](#features-)
 
-- TODO
+- Picks image(s) or video from either camera or gallery.
+- Grants appropriate permissions according to current Android API for Ex. starting from API 33
+  Manifest.permission.READ_MEDIA_IMAGES is required to get image(s) from gallery.
+- You can choose any mix you want ex. get image from camera, OR get image from camera or gallery, 
+  OR get image or video from camera or gallery, and in case where more than 1 option is possible 
+  then you will provide the library with a view and a popup anchored to it will be shown to choose
+  the required option.
+- You have the ability to provide a max limit for video length.
+- you can select multiple images not a single image.
 
 ## Usage [▴](#contents-)
 
