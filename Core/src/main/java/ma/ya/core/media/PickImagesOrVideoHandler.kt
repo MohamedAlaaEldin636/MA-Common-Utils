@@ -59,10 +59,73 @@ fun FragmentActivity.createPickImagesOrVideoHandlerForSingleImageFromCameraOrGal
 		uris.firstOrNull()?.also { onReceive(it) }
 	}
 )
+fun FragmentActivity.createPickImagesOrVideoHandlerForMultiImageFromGallery(
+	onReceive: (uris: List<Uri>) -> Unit
+) = PickImagesOrVideoHandler(
+	this,
+	SupportedMediaType.IMAGE,
+	SourceOfData.GALLERY,
+	requestMultipleImages = true,
+	onReceive = { uris, _, _ ->
+		onReceive(uris)
+	}
+)
+fun FragmentActivity.createPickImagesOrVideoHandlerForMultiImageFromEitherCameraOrGallery(
+	getAnchor: (tag: Bundle) -> View?,
+	onReceive: (uris: List<Uri>, fromCamera: Boolean) -> Unit
+) = PickImagesOrVideoHandler(
+	this,
+	SupportedMediaType.IMAGE,
+	SourceOfData.BOTH,
+	requestMultipleImages = true,
+	getAnchor = getAnchor,
+	onReceive = { uris, fromCamera, _ ->
+		onReceive(uris, fromCamera)
+	}
+)
+fun FragmentActivity.createPickImagesOrVideoHandlerForVideoFromCamera(
+	maxVideoLengthInSeconds: Int = 5 * 60,
+	onReceive: (uri: Uri) -> Unit
+) = PickImagesOrVideoHandler(
+	this,
+	SupportedMediaType.VIDEO,
+	SourceOfData.CAMERA,
+	maxVideoLengthInSeconds = maxVideoLengthInSeconds,
+	requestMultipleImages = false,
+	onReceive = { uris, _, _ ->
+		uris.firstOrNull()?.also { onReceive(it) }
+	}
+)
+fun FragmentActivity.createPickImagesOrVideoHandlerForVideoFromGallery(
+	maxVideoLengthInSeconds: Int = 5 * 60,
+	onReceive: (uri: Uri) -> Unit
+) = PickImagesOrVideoHandler(
+	this,
+	SupportedMediaType.VIDEO,
+	SourceOfData.GALLERY,
+	maxVideoLengthInSeconds = maxVideoLengthInSeconds,
+	requestMultipleImages = false,
+	onReceive = { uris, _, _ ->
+		uris.firstOrNull()?.also { onReceive(it) }
+	}
+)
+fun FragmentActivity.createPickImagesOrVideoHandlerForVideoFromEitherCameraOrGallery(
+	maxVideoLengthInSeconds: Int = 5 * 60,
+	onReceive: (uri: Uri) -> Unit
+) = PickImagesOrVideoHandler(
+	this,
+	SupportedMediaType.VIDEO,
+	SourceOfData.BOTH,
+	maxVideoLengthInSeconds = maxVideoLengthInSeconds,
+	requestMultipleImages = false,
+	onReceive = { uris, _, _ ->
+		uris.firstOrNull()?.also { onReceive(it) }
+	}
+)
 fun FragmentActivity.createPickImagesOrVideoHandler(
 	supportedMediaType: SupportedMediaType,
 	sourceOfData: SourceOfData = SourceOfData.BOTH,
-	maxVideoLengthInSeconds: Int = 3 * 60,
+	maxVideoLengthInSeconds: Int = 5 * 60,
 	requestMultipleImages: Boolean = false,
 	getAnchor: (tag: Bundle) -> View? = { null },
 	onReceive: (uris: List<Uri>, fromCamera: Boolean, isImageNotVideo: Boolean) -> Unit,
@@ -161,10 +224,23 @@ fun Fragment.createPickImagesOrVideoHandlerForVideoFromGallery(
 		uris.firstOrNull()?.also { onReceive(it) }
 	}
 )
+fun Fragment.createPickImagesOrVideoHandlerForVideoFromEitherCameraOrGallery(
+	maxVideoLengthInSeconds: Int = 5 * 60,
+	onReceive: (uri: Uri) -> Unit
+) = PickImagesOrVideoHandler(
+	this,
+	SupportedMediaType.VIDEO,
+	SourceOfData.BOTH,
+	maxVideoLengthInSeconds = maxVideoLengthInSeconds,
+	requestMultipleImages = false,
+	onReceive = { uris, _, _ ->
+		uris.firstOrNull()?.also { onReceive(it) }
+	}
+)
 fun Fragment.createPickImagesOrVideoHandler(
 	supportedMediaType: SupportedMediaType,
 	sourceOfData: SourceOfData = SourceOfData.BOTH,
-	maxVideoLengthInSeconds: Int = 3 * 60,
+	maxVideoLengthInSeconds: Int = 5 * 60,
 	requestMultipleImages: Boolean = false,
 	getAnchor: (tag: Bundle) -> View? = { null },
 	onReceive: (uris: List<Uri>, fromCamera: Boolean, isImageNotVideo: Boolean) -> Unit,
@@ -200,7 +276,7 @@ class PickImagesOrVideoHandler(
 	private val supportedMediaType: SupportedMediaType,
 	private val sourceOfData: SourceOfData = SourceOfData.BOTH,
 	/** Ex. 3 minutes -> 3 * 60 */
-	private val maxVideoLengthInSeconds: Int = 3 * 60,
+	private val maxVideoLengthInSeconds: Int = 5 * 60,
 	private val requestMultipleImages: Boolean = false,
 	/**
 	 * - MUST be used IF will have more than 1 option

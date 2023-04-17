@@ -163,5 +163,108 @@ class MyFragment : Fragment() {
 
 ### How to use pick images or video handler [▴](#usage-)
 
-1. Setup 
-2. TODO
+1. [Setup for camera captured image or video](setup-for-camera-captured-image-or-video-)
+2. [Usage in `Activity`](#usage-in-activity-)
+3. Usage in `Fragment`
+
+#### Setup for camera captured image or video [▴](#how-to-use-pick-images-or-video-handler-)
+
+1. In app Gradle **Module-level** build file add below code, below code generates 2 constants 1 which
+can be accessed from kotlin or java & the other can be accessed from xml (needed for manifest).
+
+```groovy
+android {
+  defaultConfig {
+    // Provider authorities must be unique per app, I suggest {appId}.fileProvider.
+    def fileProviderAndroidManifestXmlAuthority = "any.thing.you.want.fileprovider"
+
+    manifestPlaceholders.put("fileProviderAndroidManifestXmlAuthority", fileProviderAndroidManifestXmlAuthority)
+    buildConfigField "String", "fileProviderAndroidManifestXmlAuthority", "\"${fileProviderAndroidManifestXmlAuthority}\""
+  }
+}
+```
+
+2. In AndroidManifest.xml file add below code.
+
+```xml
+<provider
+    android:name="ma.ya.core.helperClasses.MAFileProvider"
+    android:authorities="${fileProviderAndroidManifestXmlAuthority}"
+    android:exported="false"
+    android:grantUriPermissions="true"
+    tools:replace="android:authorities"/>
+```
+
+3. In your `Application` class add below code in it's `onCreate` fun.
+
+```kotlin
+class MyApp : Application() {
+  override fun onCreate() {
+    super.onCreate()
+    
+    // Must be added.
+    MACoreInitializer.init(BuildConfig.fileProviderAndroidManifestXmlAuthority)
+  }
+}
+```
+
+4. this step should be already known, But just in case you forget, Use above `Application` class in 
+your AndroidManifest.xml file.
+
+```xml
+
+<manifest>
+  
+    <application
+        android:name=".MyApp"/>
+
+</manifest>
+```
+
+#### Usage in `Activity` [▴](#how-to-use-pick-images-or-video-handler-)
+
+```kotlin
+private class MyActivity : FragmentActivity() {
+    // In case wanna pick an image just from camera, there is another extension for gallery.
+    private val pickerOfImage = createPickImagesOrVideoHandlerForSingleImageFromCamera { uri ->
+        // Use `uri` instance however you want.
+    }
+
+    // In case wanna pick image from either camera or gallery
+    private val pickerOfImage2 = createPickImagesOrVideoHandlerForSingleImageFromCameraOrGallery(
+        getAnchor = {
+            // Return a `View`, Used to show popup menu anchored to it.
+            binding.imageView
+        }
+    ) { uri ->
+        // Use `uri` instance however you want.
+    }
+
+    // In case wanna pick multiple images, note another ext fun for gallery or camera surely camera 
+    // picks only 1 image, but this is used in case multiple images from gallery or single from camera
+    private val pickerOfImages = createPickImagesOrVideoHandlerForMultiImageFromGallery { uris ->
+        // Use list if `uris` however you want.
+    }
+  
+    // Same mechanism for video ext for case camera only, gallery only or like below one either 
+    // camera or gallery
+    private val pickerOfVideo = createPickImagesOrVideoHandlerForVideoFromEitherCameraOrGallery(
+        5 * 60/* Determine the max limit of the video defaults to 5 min */
+    ) { uri ->
+        // Use `uri` instance however you want.
+    }
+  
+    // Or Use the generic extension function which is like the constructor, provide all the possible 
+    // ways you can have, Ex. in below code we choose pick single image OR video (from camera or gallery)
+    private val pickerOfImageOrVideo = createPickImagesOrVideoHandler(
+        supportedMediaType = PickImagesOrVideoHandler.SupportedMediaType.BOTH,
+        sourceOfData = PickImagesOrVideoHandler.SourceOfData.BOTH,
+        maxVideoLengthInSeconds = 5 * 60,
+        requestMultipleImages = false,
+        getAnchor = { binding.imageView }
+    ) { uris, fromCamera, isImageNotVideo ->
+	    // Act according the provided data.
+    }
+}
+```
+
