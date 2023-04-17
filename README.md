@@ -16,7 +16,10 @@
   - [How to use permissions handler](#how-to-use-permissions-handler-)
     - [Inside an `Activity`](#inside-an-activity-)
     - [Inside a `Fragment`](#inside-a-fragment-)
-  - todo
+  - [How to use pick images or video handler](#how-to-use-pick-images-or-video-handler-)
+    - [Setup for camera captured image or video](#setup-for-camera-captured-image-or-video-)
+    - [Usage in `Activity`](#usage-in-activity-)
+    - [Usage in `Fragment`](#usage-in-fragment-)
 
 ## Install [▴](#contents-)
 
@@ -90,7 +93,9 @@ dependencies {
     - [Inside an `Activity`](#inside-an-activity-)
     - [Inside a `Fragment`](#inside-a-fragment-)
 2. [How to use pick images or video handler](#how-to-use-pick-images-or-video-handler-)
-    - TODO
+    - [Setup for camera captured image or video](#setup-for-camera-captured-image-or-video-)
+    - [Usage in `Activity`](#usage-in-activity-)
+    - [Usage in `Fragment`](#usage-in-fragment-)
 
 ### How to use permissions handler [▴](#usage-)
 
@@ -101,6 +106,8 @@ dependencies {
 
 ```kotlin
 class MyActivity : AppCompatActivity() {
+
+  // -------- Below code is for creating the instance in several different ways, Using the instance is at the end of the class -------- //
 
   // ---- Using ext functions ---- //
 
@@ -136,6 +143,12 @@ class MyActivity : AppCompatActivity() {
     }
   )
 
+  // -------- Using the instance -------- //
+
+  private fun checkPermission() {
+    launcherOfThePermission.actOnAllPermissionsAcceptedOrRequestPermissions()
+  }
+
 }
 ```
 
@@ -143,6 +156,8 @@ class MyActivity : AppCompatActivity() {
 
 ```kotlin
 class MyFragment : Fragment() {
+
+  // -------- Below code is for creating the instance in several different ways, Using the instance is at the end of the class -------- //
 
   // MUST be used like below flow, Otherwise an exception will be thrown.
   // flow is -> created only before super.onCreate() but inside that function not on declaration
@@ -158,14 +173,20 @@ class MyFragment : Fragment() {
     super.onCreate(savedInstanceState)
   }
 
+  // -------- Using the instance -------- //
+
+  private fun checkPermission() {
+    launcherOfThePermission.actOnAllPermissionsAcceptedOrRequestPermissions()
+  }
+
 }
 ```
 
 ### How to use pick images or video handler [▴](#usage-)
 
-1. [Setup for camera captured image or video](setup-for-camera-captured-image-or-video-)
+1. [Setup for camera captured image or video](#setup-for-camera-captured-image-or-video-)
 2. [Usage in `Activity`](#usage-in-activity-)
-3. Usage in `Fragment`
+3. [Usage in `Fragment`](#usage-in-fragment-)
 
 #### Setup for camera captured image or video [▴](#how-to-use-pick-images-or-video-handler-)
 
@@ -225,6 +246,9 @@ your AndroidManifest.xml file.
 
 ```kotlin
 private class MyActivity : FragmentActivity() {
+  
+    // -------- Below code is for creating the instance in several different ways, Using the instance is at the end of the class -------- //
+  
     // In case wanna pick an image just from camera, there is another extension for gallery.
     private val pickerOfImage = createPickImagesOrVideoHandlerForSingleImageFromCamera { uri ->
         // Use `uri` instance however you want.
@@ -265,6 +289,42 @@ private class MyActivity : FragmentActivity() {
     ) { uris, fromCamera, isImageNotVideo ->
 	    // Act according the provided data.
     }
+
+    // -------- Using the instance -------- //
+  
+    private fun onUserClickToPickImage() {
+      pickerOfImage.requestImageOrVideo()
+    }
+
 }
 ```
 
+#### Usage in `Fragment` [▴](#how-to-use-pick-images-or-video-handler-)
+
+```kotlin
+class MyFragment : Fragment() {
+
+    // -------- Below code is for creating the instance in several different ways, Using the instance is at the end of the class -------- //
+  
+    // MUST be used like below flow, Otherwise an exception will be thrown.
+    // flow is -> created only before super.onCreate() but inside that function not on declaration
+    // of the property.
+
+    private lateinit var pickerOfImage: PickImagesOrVideoHandler
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        pickerOfImage = createPickImagesOrVideoHandlerForSingleImageFromCamera { uri ->
+            // Use `uri` instance however you want.
+        }
+  
+        super.onCreate(savedInstanceState)
+    }
+
+    // -------- Using the instance -------- //
+  
+    private fun onUserClickToPickImage() {
+        pickerOfImage.requestImageOrVideo()
+    }
+
+}
+```
