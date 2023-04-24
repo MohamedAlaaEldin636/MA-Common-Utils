@@ -1,8 +1,22 @@
 @file:Suppress("UnstableApiUsage")
 
+import com.android.build.api.variant.BuildConfigField
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+}
+
+private val fileProviderAndroidManifestXmlAuthority = "ma.ya.macommonutils.fileprovider"
+
+androidComponents {
+    onVariants {
+        it.buildConfigFields.put(
+            "fileProviderAndroidManifestXmlAuthority", BuildConfigField(
+                "String", "\"${fileProviderAndroidManifestXmlAuthority}\"", ""
+            )
+        )
+    }
 }
 
 android {
@@ -22,7 +36,7 @@ android {
         val fileProviderAndroidManifestXmlAuthority = "ma.ya.macommonutils.fileprovider"
 
         manifestPlaceholders += "fileProviderAndroidManifestXmlAuthority" to fileProviderAndroidManifestXmlAuthority
-        buildConfigField("String", "fileProviderAndroidManifestXmlAuthority", "\"${fileProviderAndroidManifestXmlAuthority}\"")
+        //buildConfigField("String", "fileProviderAndroidManifestXmlAuthority", "\"${fileProviderAndroidManifestXmlAuthority}\"")
     }
 
     buildTypes {
@@ -49,6 +63,7 @@ android {
         viewBinding = true
         dataBinding = true
         //compose = true
+        buildConfig = true
     }
 }
 
@@ -66,6 +81,8 @@ dependencies {
 
     // Image handler ( Glide )
     implementation("com.github.bumptech.glide:glide:4.15.1")
+
+    // ---- Testing ---- //
 
     testImplementation("junit:junit:4.13.2")
 

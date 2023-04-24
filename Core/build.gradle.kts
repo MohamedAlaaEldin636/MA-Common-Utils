@@ -84,11 +84,17 @@ android {
 }
 
 dependencies {
-    // AndroidX
+    // Androidx
     implementation("androidx.core:core-ktx:1.10.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
 
+    // UI ( Material design guidelines )
     implementation("com.google.android.material:material:1.8.0")
+
+    // Gson ( Json Serialization & Deserialization )
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // ---- Testing ---- //
 
     testImplementation("junit:junit:4.13.2")
 
