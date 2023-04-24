@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.github.MohamedAlaaEldin636"
-version = "1.0.1"
+version = "1.3.0"
 
 publishing {
     publications {

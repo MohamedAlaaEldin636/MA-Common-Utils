@@ -18,5 +18,8 @@ dependencyResolutionManagement {
 
 rootProject.name = "MA Common Utils"
 
-include(":app")
+if (System.getenv()["JITPACK"] != true.toString()) {
+    include(":app")
+}
+
 include(":Core")
