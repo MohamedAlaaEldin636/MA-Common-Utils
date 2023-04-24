@@ -9,7 +9,7 @@ plugins {
 
 private val fileProviderAndroidManifestXmlAuthority = "ma.ya.macommonutils.fileprovider"
 
-androidComponents {
+/*androidComponents {
     onVariants {
         it.buildConfigFields.put(
             "fileProviderAndroidManifestXmlAuthority", BuildConfigField(
@@ -17,7 +17,7 @@ androidComponents {
             )
         )
     }
-}
+}*/
 
 android {
     namespace = "ma.ya.macommonutils"
@@ -36,7 +36,7 @@ android {
         val fileProviderAndroidManifestXmlAuthority = "ma.ya.macommonutils.fileprovider"
 
         manifestPlaceholders += "fileProviderAndroidManifestXmlAuthority" to fileProviderAndroidManifestXmlAuthority
-        //buildConfigField("String", "fileProviderAndroidManifestXmlAuthority", "\"${fileProviderAndroidManifestXmlAuthority}\"")
+        buildConfigField("String", "fileProviderAndroidManifestXmlAuthority", "\"${fileProviderAndroidManifestXmlAuthority}\"")
     }
 
     buildTypes {
