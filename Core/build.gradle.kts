@@ -94,6 +94,9 @@ dependencies {
     // Gson ( Json Serialization & Deserialization )
     implementation("com.google.code.gson:gson:2.10.1")
 
+    // Google Services
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+
     // ---- Testing ---- //
 
     testImplementation("junit:junit:4.13.2")

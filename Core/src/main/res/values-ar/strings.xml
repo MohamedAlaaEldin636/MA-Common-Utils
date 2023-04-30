@@ -13,4 +13,6 @@
     <string name="gallery">معرض</string>
     <string name="video">فيديو</string>
     <string name="image">صورة</string>
+    <string name="something_went_wrong_in_getting_current_location">حدث خطا ما فى تحديد الموقع الحالى</string>
+    <string name="something_went_wrong_while_getting_location">حدث خطا ما فى حين تحديد الموقع</string>
 </resources>

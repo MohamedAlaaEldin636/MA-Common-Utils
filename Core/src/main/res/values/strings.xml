@@ -13,4 +13,6 @@
     <string name="camera">Camera</string>
     <string name="gallery">Gallery</string>
     <string name="video">Video</string>
+    <string name="something_went_wrong_in_getting_current_location">Something went wrong in getting current location</string>
+    <string name="something_went_wrong_while_getting_location">Something went wrong while getting location</string>
 </resources>
