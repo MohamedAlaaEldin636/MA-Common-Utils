@@ -23,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -34,6 +35,7 @@ import ma.ya.core.extensions.launchSafely
 import ma.ya.core.extensions.showAlertDialog
 import ma.ya.core.extensions.showError
 import ma.ya.core.helperClasses.MALogger
+import ma.ya.core.permissions.PermissionsHandler
 import ma.ya.core.permissions.createPermissionHandlerAndActOnlyIfAllGranted
 import java.lang.Exception
 import java.lang.ref.WeakReference
@@ -43,10 +45,14 @@ class LocationHandler private constructor(
     context: Context,
     host: Any,
     listener: Listener,
-) : DefaultLifecycleObserver {
+) : DefaultLifecycleObserver, PermissionsHandler.Listener {
 
     constructor(fragment: Fragment, lifecycle: Lifecycle, context: Context, listener: Listener) : this(
         lifecycle, context, fragment, listener
+    )
+
+    constructor(activity: FragmentActivity, lifecycle: Lifecycle, context: Context, listener: Listener) : this(
+        lifecycle, context, activity, listener
     )
 
     companion object {
@@ -71,13 +77,31 @@ class LocationHandler private constructor(
 
     private var showProgressForCurrentLocation = false
 
+    override fun onAllPermissionsAccepted() {
+        checkGPSForLocation()
+    }
+
     private val activityResultPermissionLocationRequest = when (host) {
-        is Fragment -> host.createPermissionHandlerAndActOnlyIfAllGranted(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        ) {
-            checkGPSForLocation()
-        }
+        is Fragment -> PermissionsHandler(
+            host,
+            host.lifecycle,
+            host.requireContext(),
+            listOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ),
+            this
+        )
+        is AppCompatActivity -> PermissionsHandler(
+            host,
+            host.lifecycle,
+            host,
+            listOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ),
+            this
+        )
         else -> throw RuntimeException("Unexpected host")
     }
 
@@ -121,12 +145,12 @@ class LocationHandler private constructor(
         val context = weakRefContext.get() ?: return
 
         if (showProgress) {
-	          weakRefListener.get()?.showLoading()
-
             this.showProgressForCurrentLocation = true
         }
 
         requestCurrentLocationNotPeriodicLocation = true
+
+        MALogger.e("LocationHandler -> on request current permission")
 
         checkOnPermissions(context)
     }
@@ -148,8 +172,12 @@ class LocationHandler private constructor(
     private fun checkOnPermissions(context: Context) {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
             && ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            MALogger.e("LocationHandler -> pre check gps for location")
+
             checkGPSForLocation()
         }else {
+            MALogger.e("LocationHandler -> pre request permissions")
+
             activityResultPermissionLocationRequest.actOnAllPermissionsAcceptedOrRequestPermissions()
         }
     }
@@ -167,6 +195,8 @@ class LocationHandler private constructor(
 
             showProgressForCurrentLocation = false
         }
+
+        MALogger.e("LocationHandler -> pre calling interface on success where location $location")
 
         if (location != null) {
             weakRefListener.get()?.onCurrentLocationResultSuccess(location)
@@ -201,8 +231,12 @@ class LocationHandler private constructor(
                         return@currentLocationAddOnSuccessListener
                     }
 
+                    MALogger.e("LocationHandler -> onGPSSuccess success pre completed")
+
                     onRequestCurrentLocationCompleted(location)
                 }.addOnFailureListener {
+                    MALogger.e("LocationHandler -> onGPSSuccess error $it pre failure")
+
                     onRequestCurrentLocationFailure(it)
                 }
             }
@@ -221,13 +255,21 @@ class LocationHandler private constructor(
     private fun checkGPSForLocation() {
         val context = weakRefContext.get() ?: return
 
+        if (this.showProgressForCurrentLocation) {
+            weakRefListener.get()?.showLoading()
+        }
+
         val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
 
         val client = LocationServices.getSettingsClient(context)
 
         client.checkLocationSettings(builder.build()).addOnSuccessListener {
+            MALogger.e("LocationHandler -> on check gsp success pre onGPS success")
+
             onGPSSuccess()
         }.addOnFailureListener { exception ->
+            MALogger.e("LocationHandler -> on check gsp success failure $exception")
+
             if (exception is ResolvableApiException){
                 // Location settings are not satisfied, but this can be fixed
                 // by showing the user a dialog.
@@ -239,7 +281,9 @@ class LocationHandler private constructor(
                         weakRefContext.get(),
                         IntentSenderRequest.Builder(exception.resolution.intentSender).build()
                     )
+                    MALogger.e("LocationHandler -> started activity to resolve issue of gps")
                 }catch (sendEx: IntentSender.SendIntentException) {
+                    MALogger.e("LocationHandler -> error in starting activity to resolve issue of gps")
                     onGPSFailure(sendEx)
                 }
             }else {
@@ -309,7 +353,9 @@ class LocationHandler private constructor(
                     onDismissListener = {
                         context?.showError(context.getString(R.string.you_didn_t_accept_permission))
                     }
-                ) {
+                ) { dialog ->
+                    dialog.dismiss()
+
                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).also {
                         it.data = Uri.fromParts("package", packageName, null)
                     }

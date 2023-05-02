@@ -47,6 +47,19 @@
                 android:gravity="center">
 
                 <com.google.android.material.button.MaterialButton
+                    android:id="@+id/getCurrentLocationMaterialButton"
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:layout_margin="2dp"
+
+                    android:textAllCaps="false"
+                    android:textSize="16sp"
+
+                    android:text="Get Current Location"/>
+
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/singleImageFromCameraMaterialButton"
 
                     android:layout_width="wrap_content"

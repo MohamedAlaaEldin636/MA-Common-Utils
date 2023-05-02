@@ -1,5 +1,6 @@
 package ma.ya.core.extensions
 
+import android.content.DialogInterface
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.FragmentActivity
 import ma.ya.core.R
@@ -9,18 +10,23 @@ fun FragmentActivity.showAlertDialog(
 	title: String,
 	message: String,
 	onDismissListener: () -> Unit = {},
-	onPositiveButtonClick: () -> Unit
+	onPositiveButtonClick: (DialogInterface) -> Unit
 ) {
+	var clickedOnPositiveClick = false
+
 	AlertDialog.Builder(this)
 		.setTitle(title)
 		.setMessage(message)
 		.setPositiveButton(
 			getString(R.string.ok)
-		) { _, _ ->
-			onPositiveButtonClick()
+		) { dialog, _ ->
+			clickedOnPositiveClick = true
+			onPositiveButtonClick(dialog)
 		}
 		.setOnDismissListener {
-			onDismissListener()
+			if (clickedOnPositiveClick.not()) {
+				onDismissListener()
+			}
 		}
 		.createAndShowSafely()
 }

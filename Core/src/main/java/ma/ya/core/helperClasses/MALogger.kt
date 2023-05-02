@@ -11,4 +11,9 @@ object MALogger {
 		Log.e(MA_LOGGER, "$MA_LOGGER -> $any")
 	}
 
+	@JvmStatic
+	fun d(any: Any?) {
+		Log.d(MA_LOGGER, "$MA_LOGGER -> $any")
+	}
+
 }

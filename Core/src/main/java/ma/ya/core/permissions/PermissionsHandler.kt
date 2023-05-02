@@ -183,14 +183,17 @@ class PermissionsHandler private constructor(
 				weakRefListener.get()?.onSubsetPermissionsAccepted(permissions)
 			}
 			activity != null -> {
-				MALogger.e("sadhiasudh onActivityPermissionsLauncherResult 3")
 				val rationaleList = this.permissions.filter {
 					weakRefHost.get().shouldShowRequestPermissionRationaleFromAny(it)
 				}
 
+				MALogger.e("sadhiasudh onActivityPermissionsLauncherResult 3 ${rationaleList.isNotEmpty()} $rationaleList")
+
 				if (rationaleList.isNotEmpty()) {
 					weakRefListener.get()?.onShouldShowRationale(this, rationaleList)
 				}else {
+					MALogger.e("sadhiasudh onActivityPermissionsLauncherResult listener ${weakRefListener.get()}")
+
 					weakRefListener.get()?.onDenyPermissions(this)
 				}
 			}
@@ -237,11 +240,11 @@ class PermissionsHandler private constructor(
 					getString(R.string.allow_permission),
 					getString(R.string.to_use_this_feature_you_must_accept_this_permission),
 					onDismissListener = {
-						permissionsHandler.weakRefContext.get()?.also { context ->
-							context.showError(context.getString(R.string.you_didn_t_accept_permission))
-						}
+						onDenyShouldShowRationale(permissionsHandler)
 					}
 				) {
+					it.dismiss()
+
 					permissionsHandler.activityResultLauncherPermissions.launchSafely(
 						permissionsHandler.weakRefContext.get(),
 						permissionsHandler.permissions.toTypedArray()
@@ -251,18 +254,27 @@ class PermissionsHandler private constructor(
 		}
 
 		fun onDenyPermissions(permissionsHandler: PermissionsHandler) {
+			MALogger.e("sadhiasudh onActivityPermissionsLauncherResult in on deny activity ${permissionsHandler.weakRefHost.get().getActivityOrNullFromAny()}")
 			permissionsHandler.weakRefHost.get().getActivityOrNullFromAny()?.apply {
 				showAlertDialog(
 					getString(R.string.change_permission_in_settings_of_device),
 					getString(R.string.to_use_this_feature_you_must_accept_this_permission),
 					onDismissListener = {
-						permissionsHandler.weakRefContext.get()?.also { context ->
-							context.showError(context.getString(R.string.you_didn_t_accept_permission))
-						}
+						onDenyGoToDeviceSettings(permissionsHandler)
 					}
-				) {
+				) { dialog ->
+					dialog.dismiss()
+
 					val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).also {
 						it.data = Uri.fromParts("package", packageName, null)
+					}
+
+					kotlin.runCatching {
+						val res = intent.resolveActivity(permissionsHandler.weakRefHost.getActivityOrNullFromAny()!!.packageManager)
+
+						MALogger.e("sadhiasudh onActivityPermissionsLauncherResult resolved activity $res")
+					}.getOrElse {
+						MALogger.e("sadhiasudh onActivityPermissionsLauncherResult resolved activity error $it")
 					}
 
 					permissionsHandler.activityResultPermissionsSystemSettings.launchSafely(
@@ -270,6 +282,18 @@ class PermissionsHandler private constructor(
 						intent
 					)
 				}
+			}
+		}
+
+		fun onDenyShouldShowRationale(permissionsHandler: PermissionsHandler) {
+			permissionsHandler.weakRefContext.get()?.also { context ->
+				context.showError(context.getString(R.string.you_didn_t_accept_permission))
+			}
+		}
+
+		fun onDenyGoToDeviceSettings(permissionsHandler: PermissionsHandler) {
+			permissionsHandler.weakRefContext.get()?.also { context ->
+				context.showError(context.getString(R.string.you_didn_t_accept_permission))
 			}
 		}
 
