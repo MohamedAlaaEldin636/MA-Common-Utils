@@ -8,7 +8,10 @@ import android.os.Bundle
 import androidx.databinding.DataBindingUtil
 import com.bumptech.glide.Glide
 import ma.ya.core.extensions.dismissToast
+import ma.ya.core.extensions.toast
+import ma.ya.core.extensions.toastError
 import ma.ya.core.extensions.toastLong
+import ma.ya.core.extensions.toastSuccess
 import ma.ya.core.helperClasses.MALogger
 import ma.ya.core.location.LocationHandler
 import ma.ya.core.media.createPickImagesOrVideoHandlerForSingleImageFromCamera
@@ -81,6 +84,15 @@ class MainActivity : AppCompatActivity(), LocationHandler.Listener {
 		binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 		binding.lifecycleOwner = this
 
+		binding.toastNormalMaterialButton.setOnClickListener {
+			toast("Normal toasting")
+		}
+		binding.toastSuccessMaterialButton.setOnClickListener {
+			toastSuccess("Success")
+		}
+		binding.toastErrorMaterialButton.setOnClickListener {
+			toastError("Error")
+		}
 		binding.getCurrentLocationMaterialButton.setOnClickListener {
 			locationHandler.requestCurrentLocation(true)
 		}

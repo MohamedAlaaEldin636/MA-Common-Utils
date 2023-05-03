@@ -47,6 +47,45 @@
                 android:gravity="center">
 
                 <com.google.android.material.button.MaterialButton
+                    android:id="@+id/toastNormalMaterialButton"
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:layout_margin="2dp"
+
+                    android:textAllCaps="false"
+                    android:textSize="16sp"
+
+                    android:text="Toast Normal"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/toastErrorMaterialButton"
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:layout_margin="2dp"
+
+                    android:textAllCaps="false"
+                    android:textSize="16sp"
+
+                    android:text="Toast Error"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/toastSuccessMaterialButton"
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:layout_margin="2dp"
+
+                    android:textAllCaps="false"
+                    android:textSize="16sp"
+
+                    android:text="Toast Success"/>
+
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/getCurrentLocationMaterialButton"
 
                     android:layout_width="wrap_content"

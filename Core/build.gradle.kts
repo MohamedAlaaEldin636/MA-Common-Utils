@@ -33,6 +33,8 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
+        vectorDrawables.useSupportLibrary = true
+
         consumerProguardFiles("consumer-rules.pro")
 
         aarMetadata {
