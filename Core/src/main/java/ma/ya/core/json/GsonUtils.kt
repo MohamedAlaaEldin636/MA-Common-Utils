@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "MemberVisibilityCanBePrivate")
 
 package ma.ya.core.json
 
@@ -8,7 +8,17 @@ import com.google.gson.reflect.TypeToken
 
 object GsonUtils {
 	fun getLibGson(): Gson = gson
+
+	/**
+	 * For this to work you better call it before any usage of [toJsonOrNull], [fromJsonOrNull]
+	 * or [getLibGson]
+	 */
+	fun addAdditionalGsonSetups(setups: GsonBuilder.() -> GsonBuilder) {
+		additionalGsonSetups = setups
+	}
 }
+
+private var additionalGsonSetups: (GsonBuilder.() -> GsonBuilder)? = null
 
 @PublishedApi
 internal val gson by lazy {
@@ -16,6 +26,11 @@ internal val gson by lazy {
 		.disableHtmlEscaping()
 		.setLenient()
 		.serializeNulls()
+		.let {
+			val setups = additionalGsonSetups
+
+			if (setups == null) it else it.setups()
+		}
 		.create()
 }
 
